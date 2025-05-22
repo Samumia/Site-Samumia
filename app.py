@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # Configuração do Cloudinary
 cloudinary.config(
-    cloud_name="Samumia",
+    cloud_name="dz41grdow",
     api_key="127866414955154",
     api_secret="BAIqUg3OYW0yPFtN5Iefu8H8YUM"
 )
