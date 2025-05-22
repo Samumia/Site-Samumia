@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Arquivos Samumia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h2>Arquivos do Samumia</h2>
+  <div class="arquivos">
+    {% for arquivo in arquivos %}
+      {% set ext = arquivo.split('.')[-1].lower() %}
+      {% if ext == 'pdf' %}
+        {% set icone = "📄" %}
+      {% elif ext in ['mp3', 'wav'] %}
+        {% set icone = "🎵" %}
+      {% elif ext in ['zip', 'rar'] %}
+        {% set icone = "📦" %}
+      {% elif ext in ['png', 'jpg', 'jpeg', 'gif'] %}
+        {% set icone = "🖼️" %}
+      {% elif ext in ['mp4', 'mov', 'avi'] %}
+        {% set icone = "🎬" %}
+      {% elif ext in ['txt', 'md'] %}
+        {% set icone = "📝" %}
+      {% else %}
+        {% set icone = "📁" %}
+      {% endif %}
+
+      <div class="arquivo" oncontextmenu="showMenu(event, '{{ arquivo }}')">
+        {{ icone }} {{ arquivo.rsplit('.', 1)[0] }}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div id="contextMenu" class="context-menu">
+    <div onclick="baixar()">📥 Baixar</div>
+    <div onclick="abrirRenomear()">✏️ Renomear</div>
+    <div onclick="excluir()">🗑️ Excluir</div>
+  </div>
+
+  <div id="popupRenomear" class="popup">
+    <form onsubmit="enviarRenomear(event)">
+      <input type="text" id="novoNome" placeholder="Novo nome..." required>
+      <button type="submit">Renomear</button>
+      <button type="button" onclick="fecharPopup()">Cancelar</button>
+    </form>
+  </div>
+
+  <script>
+    let arquivoSelecionado = '';
+
+    function showMenu(e, nome) {
+      e.preventDefault();
+      arquivoSelecionado = nome;
+      const menu = document.getElementById('contextMenu');
+      menu.style.top = e.pageY + 'px';
+      menu.style.left = e.pageX + 'px';
+      menu.style.display = 'block';
+    }
+
+    function baixar() {
+      window.location.href = '/download/' + encodeURIComponent(arquivoSelecionado);
+      esconderMenu();
+    }
+
+    function abrirRenomear() {
+      esconderMenu();
+      document.getElementById('popupRenomear').style.display = 'block';
+    }
+
+    function excluir() {
+      esconderMenu();
+      if (confirm('Tem certeza que deseja excluir "' + arquivoSelecionado + '"? Essa ação não pode ser desfeita.')) {
+        fetch('/delete', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: 'name=' + encodeURIComponent(arquivoSelecionado)
+        }).then(() => window.location.reload());
+      }
+    }
+
+    function enviarRenomear(event) {
+      event.preventDefault();
+      const novo = document.getElementById('novoNome').value;
+      fetch('/rename', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'old_name=' + encodeURIComponent(arquivoSelecionado) + '&new_name=' + encodeURIComponent(novo)
+      }).then(() => window.location.reload());
+    }
+
+    function esconderMenu() {
+      document.getElementById('contextMenu').style.display = 'none';
+    }
+
+    function fecharPopup() {
+      document.getElementById('popupRenomear').style.display = 'none';
+    }
+
+    document.addEventListener('click', esconderMenu);
+  </script>
+<!-- Botão de envio de arquivo no canto inferior direito -->
+<div class="upload-container">
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <input id="file-upload" type="file" name="file" onchange="this.form.submit()" required>
+    <label for="file-upload" class="upload-button">📤 Enviar Arquivo</label>
+  </form>
+</div>
+</body>
+</html>
