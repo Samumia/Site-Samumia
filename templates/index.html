@@ -10,7 +10,9 @@
   <h2>Arquivos do Samumia</h2>
   <div class="arquivos">
     {% for arquivo in arquivos %}
-      {% set ext = arquivo.split('.')[-1].lower() %}
+      {% set nome = arquivo.nome %}
+      {% set url = arquivo.url %}
+      {% set ext = nome.split('.')[-1].lower() %}
       {% if ext == 'pdf' %}
         {% set icone = "📄" %}
       {% elif ext in ['mp3', 'wav'] %}
@@ -27,8 +29,8 @@
         {% set icone = "📁" %}
       {% endif %}
 
-      <div class="arquivo" oncontextmenu="showMenu(event, '{{ arquivo }}')">
-        {{ icone }} {{ arquivo.rsplit('.', 1)[0] }}
+      <div class="arquivo" oncontextmenu="showMenu(event, '{{ nome }}', '{{ url }}')">
+        <a href="{{ url }}" target="_blank" title="Abrir">{{ icone }} {{ nome.rsplit('.', 1)[0] }}</a>
       </div>
     {% endfor %}
   </div>
@@ -49,10 +51,12 @@
 
   <script>
     let arquivoSelecionado = '';
+    let urlSelecionado = '';
 
-    function showMenu(e, nome) {
+    function showMenu(e, nome, url) {
       e.preventDefault();
       arquivoSelecionado = nome;
+      urlSelecionado = url;
       const menu = document.getElementById('contextMenu');
       menu.style.top = e.pageY + 'px';
       menu.style.left = e.pageX + 'px';
@@ -60,7 +64,7 @@
     }
 
     function baixar() {
-      window.location.href = '/download/' + encodeURIComponent(arquivoSelecionado);
+      window.open(urlSelecionado, '_blank');
       esconderMenu();
     }
 
@@ -100,12 +104,13 @@
 
     document.addEventListener('click', esconderMenu);
   </script>
-<!-- Botão de envio de arquivo no canto inferior direito -->
-<div class="upload-container">
-  <form action="/upload" method="post" enctype="multipart/form-data">
-    <input id="file-upload" type="file" name="file" onchange="this.form.submit()" required>
-    <label for="file-upload" class="upload-button">📤 Enviar Arquivo</label>
-  </form>
-</div>
+
+  <!-- Botão de envio de arquivo no canto inferior direito -->
+  <div class="upload-container">
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input id="file-upload" type="file" name="file" onchange="this.form.submit()" required>
+      <label for="file-upload" class="upload-button">📤 Enviar Arquivo</label>
+    </form>
+  </div>
 </body>
 </html>
